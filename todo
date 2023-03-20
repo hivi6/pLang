@@ -1,0 +1,7 @@
+20.03.2023
+
+- [x] Add basic repl
+- [x] Create a position class
+- [x] Create a token class
+- [x] Create a basic lexer
+- [x] Create Error handling mechanism
