@@ -3,6 +3,7 @@
 ############################
 
 WHITESPACES     = " \n\t"
+DIGITS          = "1234567890"
 
 ############################
 # Position
@@ -113,31 +114,33 @@ class Lexer:
         self.curPos.advance(self.peek())
 
     def getTokens(self) -> list[Token]:
-        tokens = []
+        self.tokens = []
 
         while not self.isEnd():
             self.prevPos = self.curPos.copy()   # Store the previous token
 
             if self.peek() in WHITESPACES:
                 self.advance()
+            elif self.peek() in DIGITS:
+                self.getInt()
             elif self.peek() == "+":
                 self.advance()
-                tokens.append(Token(TT_PLUS, "+", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_PLUS, "+", self.prevPos.copy(), self.curPos.copy()))
             elif self.peek() == "-":
                 self.advance()
-                tokens.append(Token(TT_MINUS, "-", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_MINUS, "-", self.prevPos.copy(), self.curPos.copy()))
             elif self.peek() == "*":
                 self.advance()
-                tokens.append(Token(TT_MULTIPLY, "*", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_MULTIPLY, "*", self.prevPos.copy(), self.curPos.copy()))
             elif self.peek() == "/":
                 self.advance()
-                tokens.append(Token(TT_DIVIDE, "/", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_DIVIDE, "/", self.prevPos.copy(), self.curPos.copy()))
             elif self.peek() == "(":
                 self.advance()
-                tokens.append(Token(TT_LPAREN, "(", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_LPAREN, "(", self.prevPos.copy(), self.curPos.copy()))
             elif self.peek() == ")":
                 self.advance()
-                tokens.append(Token(TT_RPAREN, ")", self.prevPos.copy(), self.curPos.copy()))
+                self.tokens.append(Token(TT_RPAREN, ")", self.prevPos.copy(), self.curPos.copy()))
             else:
                 illegalChar = self.peek()
                 self.advance()
@@ -145,7 +148,16 @@ class Lexer:
                                               self.prevPos.copy(), 
                                               self.curPos.copy())
             
-        return tokens, None
+        return self.tokens, None
+    
+    def getInt(self) -> None:
+        lexical = ""
+        
+        while not self.isEnd() and self.peek() in DIGITS:
+            lexical += self.peek()
+            self.advance()
+
+        self.tokens.append(Token(TT_INT, lexical, self.prevPos.copy(), self.curPos.copy()))
     
 ############################
 # pLang Functionality

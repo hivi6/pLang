@@ -5,3 +5,7 @@
 - [x] Create a token class
 - [x] Create a basic lexer
 - [x] Create Error handling mechanism
+
+22.03.2023:
+
+- [x] Add integer support

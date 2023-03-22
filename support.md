@@ -1,6 +1,6 @@
 # Support
 
 - [ ] Lexer
-    - [ ] Int
+    - [x] Int
     - [ ] Float
 - [ ] Parser
