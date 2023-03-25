@@ -9,3 +9,10 @@
 22.03.2023:
 
 - [x] Add integer support
+
+25.03.2023:
+
+- [x] Add a simple parser
+    - [x] Primary
+    - [x] Factor 
+    - [x] term
