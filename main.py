@@ -1,4 +1,4 @@
-import plang
+import src.plang as plang
 import sys
 
 if __name__ == "__main__":

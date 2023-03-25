@@ -210,10 +210,10 @@ class Parser:
     # Helper functions
 
     def isEnd(self) -> bool:
-        return self.idx >= len(self.tokens)
+        return self.idx >= len(self.tokens) - 1 # min of len(tokens) = 1
     
     def peek(self) -> Token:
-        if self.isEnd() or self.tokens[self.idx].type == TT_EOF:
+        if self.isEnd():
             return self.tokens[-1]
         return self.tokens[self.idx]
     
@@ -229,7 +229,7 @@ class Parser:
         left, error = self.factor()
         if error: return None, error
 
-        while self.peek().type in [TT_PLUS, TT_MINUS]:
+        while not self.isEnd() and self.peek().type in [TT_PLUS, TT_MINUS]:
             op = self.advance()
             right, error = self.factor()
             if error: return None, error
@@ -241,7 +241,7 @@ class Parser:
         left, error = self.primary()
         if error: return None, error
 
-        while self.peek().type in [TT_MULTIPLY, TT_DIVIDE]:
+        while not self.isEnd() and self.peek().type in [TT_MULTIPLY, TT_DIVIDE]:
             op = self.advance()
             right, error = self.primary()
             if error: return None, error
@@ -258,6 +258,12 @@ class Parser:
 
     def parse(self) -> tuple[AstNode, Error]:
         ast, error = self.term()
+        if error: return None, error
+
+        if not self.isEnd():
+            print(self.peek())
+            return None, SyntaxError("Something went wrong.", self.peek().startPos, self.tokens[-1].endPos)
+        return ast, error
 
 ############################
 # pLang Functionality
