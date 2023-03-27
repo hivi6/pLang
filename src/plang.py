@@ -264,6 +264,48 @@ class Parser:
             print(self.peek())
             return None, SyntaxError("Something went wrong.", self.peek().startPos, self.tokens[-1].endPos)
         return ast, error
+    
+############################
+# Interpreter
+############################
+
+class Interpreter:
+    def __init__(self) -> None:
+        self.exprRes = None
+    
+    # Main interpreter function
+
+    def interpret(self, ast) -> None:
+        self.visit(ast)
+        print(self.exprRes)
+
+    # Mapping function
+
+    def visit(self, ast: AstNode) -> None:
+        visitName = f"visit{type(ast).__name__}"
+        visitMethod = getattr(self, visitName, self.noVisitMethod)
+        visitMethod(ast)
+
+    def noVisitMethod(self, ast) -> None:
+        raise Exception(f"No visit method named visit{type(ast).__name__}")
+    
+    # visit functions for every node
+
+    def visitLiteralNode(self, ast: LiteralNode) -> None:
+        self.exprRes = int(ast.literal.lexical)
+
+    def visitBinaryNode(self, ast: BinaryNode) -> None:
+        self.visit(ast.left)
+        leftRes = self.exprRes
+
+        self.visit(ast.right)
+        rightRes = self.exprRes
+
+        if ast.op.type == TT_PLUS: self.exprRes = leftRes + rightRes
+        elif ast.op.type == TT_MINUS: self.exprRes = leftRes - rightRes
+        elif ast.op.type == TT_MULTIPLY: self.exprRes = leftRes * rightRes
+        elif ast.op.type == TT_DIVIDE: self.exprRes = leftRes // rightRes
+        else: raise Exception(f"No support for operator {ast.op.lexical}.")
 
 ############################
 # pLang Functionality
@@ -279,13 +321,16 @@ def run(filename, srcText: str) -> None:
     if error: 
         print(error)
         return
-    else: print(tokens)
 
     parser = Parser(filename, srcText, tokens)
     ast, error = parser.parse()
 
-    if error: print(error)
-    else: print(ast)
+    if error: 
+        print(error)
+        return
+
+    interpreter = Interpreter()
+    interpreter.interpret(ast)
 
 def repl() -> None:
     """
