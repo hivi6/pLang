@@ -22,3 +22,8 @@
 - [x] Implemented a simple interpreter
     - [x] Literal support
     - [x] Binary arithmetic support
+
+02.04.2023:
+
+- [x] Add string literal
+- [ ] Add custom types for easy implementations

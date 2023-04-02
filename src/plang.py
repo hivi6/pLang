@@ -64,11 +64,16 @@ class SyntaxError(Error):
     def __init__(self, errDetails: str, startPos: Position, endPos: Position) -> None:
         super().__init__("SyntaxError", errDetails, startPos, endPos)
 
+class UnimplementedError(Error):
+    def __init__(self, errDetails: str, startPos: Position, endPos: Position) -> None:
+        super().__init__("UnimplementedError", errDetails, startPos, endPos)
+
 ############################
 # Tokens
 ############################
 
 TT_INT      = "INT"
+TT_STR      = "STR"
 TT_PLUS     = "PLUS"
 TT_MINUS    = "MINUS"
 TT_MULTIPLY = "MULTIPLY"
@@ -129,6 +134,28 @@ class Lexer:
 
         self.tokens.append(Token(TT_INT, lexical, self.prevPos.copy(), self.curPos.copy()))
 
+    def getStr(self) -> Error:
+        prevPos = self.prevPos.copy()
+        lexical = self.peek() # get the single quote
+        self.advance() # "
+
+        while not self.isEnd() and self.peek() != '"':
+            prevPos = self.curPos.copy()
+            lexical += self.peek()
+            self.advance()
+
+        if self.isEnd():
+            return IllegalCharError(
+                "expected '\"' but instead reached eof.", 
+                prevPos, 
+                self.curPos.copy()
+            )
+
+        lexical += self.peek() # ending "
+        self.advance() # "
+
+        self.tokens.append(Token(TT_STR, lexical, self.prevPos.copy(), self.curPos.copy()))
+
     # Main function
 
     def getTokens(self) -> list[Token, Error]:
@@ -141,6 +168,10 @@ class Lexer:
                 self.advance()
             elif self.peek() in DIGITS:
                 self.getInt()
+            elif self.peek() == '"':
+                err = self.getStr()
+                if err:
+                    None, err
             elif self.peek() == "+":
                 self.advance()
                 self.tokens.append(Token(TT_PLUS, "+", self.prevPos.copy(), self.curPos.copy()))
@@ -250,7 +281,7 @@ class Parser:
         return left, None
 
     def primary(self) -> tuple[LiteralNode, Error]:
-        if self.peek().type == TT_INT:
+        if self.peek().type in [TT_INT, TT_STR]:
             return LiteralNode(self.advance()), None
         return None, SyntaxError("Expected a primary", self.peek().startPos, self.peek().endPos)
     
@@ -264,7 +295,7 @@ class Parser:
             print(self.peek())
             return None, SyntaxError("Something went wrong.", self.peek().startPos, self.tokens[-1].endPos)
         return ast, error
-    
+
 ############################
 # Interpreter
 ############################
@@ -292,7 +323,10 @@ class Interpreter:
     # visit functions for every node
 
     def visitLiteralNode(self, ast: LiteralNode) -> None:
-        self.exprRes = int(ast.literal.lexical)
+        if ast.literal.type == TT_INT:
+            self.exprRes = int(ast.literal.lexical)
+        elif ast.literal.type == TT_STR:
+            self.exprRes = ast.literal.lexical[1:-1]
 
     def visitBinaryNode(self, ast: BinaryNode) -> None:
         self.visit(ast.left)
@@ -317,7 +351,7 @@ def run(filename, srcText: str) -> None:
     """
     lexer = Lexer(filename, srcText)
     tokens, error = lexer.getTokens()
-    
+
     if error: 
         print(error)
         return
